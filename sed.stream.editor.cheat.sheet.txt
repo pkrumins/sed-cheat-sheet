@@ -1,0 +1,260 @@
+.---------------------------------------------------------------------.
+|                                                                     |
+|                            UNIX Stream Editor                       |
+|                             Sed Cheat Sheet                         |
+|                                                                     |
+'---------------------------------------------------------------------'
+| Peteris Krumins (peter@catonmat.net), 2007.08.22                    |
+| http://www.catonmat.net  -  good coders code, great reuse           |
+'---------------------------------------------------------------------'
+
+ ==================== How Commands Affect Streams ====================
+
+   .---------.-----------.-----------------------------------------.
+   |         |           |           Modifications to:             |
+   |         |  Address  '---------.---------.---------.-----------'
+   | Command | or Range  | Input   | Output  | Pattern |   Hold    |
+   |         |           | Stream  | Stream  | Space   |   Buffer  |
+   '---------+-----------+---------+---------+---------+-----------'
+   |    =    |     -     |    -    |    +    |    -    |     -     |
+   |    a    |     1     |    -    |    +    |    -    |     -     |
+   |    b    |     2     |    -    |    -    |    -    |     -     |
+   |    c    |     2     |    -    |    +    |    -    |     -     |
+   |    d    |     2     |    +    |    -    |    +    |     -     |
+   |    D    |     2     |    +    |    -    |    +    |     -     |
+   |    g    |     2     |    -    |    -    |    +    |     -     |
+   |    G    |     2     |    -    |    -    |    +    |     -     |
+   |    h    |     2     |    -    |    -    |    -    |     +     |
+   |    H    |     2     |    -    |    -    |    -    |     +     |
+   |    i    |     1     |    -    |    +    |    -    |     -     |
+   |    l    |     1     |    -    |    +    |    -    |     -     |
+   |    n    |     2     |    +    |    *    |    -    |     -     |
+   |    N    |     2     |    +    |    -    |    +    |     -     |
+   |    p    |     2     |    -    |    +    |    -    |     -     |
+   |    P    |     2     |    -    |    +    |    -    |     -     |
+   |    q    |     1     |    -    |    -    |    -    |     -     |
+   |    r    |     1     |    -    |    +    |    -    |     -     |
+   |    s    |     2     |    -    |    -    |    +    |     -     |
+   |    t    |     2     |    -    |    -    |    -    |     -     |
+   |    w    |     2     |    -    |    +    |    -    |     -     |
+   |    x    |     2     |    -    |    -    |    +    |     +     |
+   |    y    |     2     |    -    |    -    |    +    |     -     |
+   '---------'-----------'---------'---------'---------'-----------'
+
+    Modifications to:
+
+    1    Command takes single address or pattern.
+    2    Command takes pair of addresses.
+    -    Command does not modify the buffer.
+    +    Command modifies the buffer.
+    *    The ``n'' command may or may not generate output depending
+         on the ``-n'' command option.
+
+
+ ========================== Command Summary ==========================
+
+.----------------.----------------------------------------------------.
+|                |                                                    |
+| Command        | Description                                        |
+|                |                                                    |
+'----------------+----------------------------------------------------'
+| #              | Adds a comment.                                    |
+'----------------+----------------------------------------------------'
+| =              | The "=" command prints the current line number to  |
+|                | standard output.                                   |
+'----------------+----------------------------------------------------'
+| a \            | The "a" command appends text after the             |
+| text           | range or pattern.                                  |
+'----------------+----------------------------------------------------'
+| b label        | The "b" command branches to the label. You can     |
+|                | specify a label with a text string followed by a   |
+|                | colon. If no label is there, branch to the end of  |
+|                | the script.                                        |
+'----------------+----------------------------------------------------'
+| c \            | The "c" command changes the current line with      |
+| text           | text.                                              |
+'----------------+----------------------------------------------------'
+| d              | The "d" command deletes the current pattern space, |
+|                | reads in the next line, puts the new line into the |
+|                | pattern space, and aborts the current command, and |
+|                | starts execution at the first sed command.         |
+'----------------+----------------------------------------------------'
+| D              | The "D" command deletes the first portion of the   |
+|                | pattern space, up to the new line character,       |
+|                | leaving the rest of the pattern alone.             |
+'----------------+----------------------------------------------------'
+| g              | Instead of exchanging (the "x" command) the hold   |
+|                | space with the pattern space, you can copy the     |
+|                | hold space to the pattern space with the "g"       |
+|                | command.                                           |
+'----------------+----------------------------------------------------'
+| G              | If you want to append to the pattern space, use    |
+|                | the "G" command.                                   |
+'----------------+----------------------------------------------------'
+| h              | The "h" command copies the pattern buffer into the |
+|                | hold buffer.                                       |
+'----------------+----------------------------------------------------'
+| H              | The "H" command allows you to combine several      |
+|                | lines in the hold buffer. It acts like the "N"     |
+|                | command as lines are appended to the buffer, with  |
+|                | a "\n" between the lines. You can save several     |
+|                | lines in the hold buffer, and print them only if a |
+|                | particular pattern is found later.                 |
+'----------------+----------------------------------------------------'
+| i \            | You can insert text before the pattern with        |
+| text           | the "i" command.                                   |
+'----------------+----------------------------------------------------'
+| l              | The "l" command prints the current pattern space.  |
+|                | It is therefore useful in debugging sed scripts.   |
+|                | It also converts unprintable characters into       |
+|                | printing characters by outputting the value in     |
+|                | octal preceded by a "\" character.                 |
+'----------------+----------------------------------------------------'
+| n              | The "n" command will print out the current pattern |
+|                | space (unless the "-n" flag is used), empty the    |
+|                | current pattern space, and read in the next        |
+|                | line of input.                                     |
+'----------------+----------------------------------------------------'
+| N              | The "N" command does not print out the current     |
+|                | pattern space and does not empty the pattern       |
+|                | space. It reads in the next line, but appends a    |
+|                | new line character along with the input line       |
+|                | itself to the pattern space.                       |
+'----------------+----------------------------------------------------'
+| p              | Another useful command is the print command: "p".  |
+|                | If sed wasn't started with an "-n" option, the "p" |
+|                | command will duplicate the input. The "p" command  |
+|                | prints the entire pattern space.                   |
+'----------------+----------------------------------------------------'
+| P              | The "P" command only prints the first part of the  |
+|                | pattern space, up to the NEWLINE character.        |
+'----------------+----------------------------------------------------'
+| q              | There is one more simple command that can restrict |
+|                | the changes to a set of lines. It is the "q"       |
+|                | command: quit. This command is most useful when    |
+|                | you wish to abort the editing after some condition |
+|                | is reached.                                        |
+'----------------+----------------------------------------------------'
+| r filename     | The "r" command will append text from filename     |
+|                | after the range or pattern.                        |
+'----------------+----------------------------------------------------'
+| s/regex/repl/  | The substitute command replaces all occurrences of |
+|                | the regular expression (regex) with repl(acement)  |
+'----------------+----------------------------------------------------'
+| t label        | You can execute a branch if a pattern is found.    |
+|                | You may want to execute a branch only if a         |
+|                | substitution is made. The command "t label" will   |
+|                | branch to the label if the last substitute command |
+|                | modified the pattern space.                        |
+'----------------+----------------------------------------------------'
+| w filename     | With this command, you can specify a filename that |
+|                | will receive the modified data.                    |
+'----------------+----------------------------------------------------'
+| x              | The "x" command exchanges the hold buffer and the  |
+|                | pattern buffer.                                    |
+'----------------+----------------------------------------------------'
+| y/source/dest/ | Transliterate the characters in the pattern space, |
+|                | which appear in source to the corresponding        |
+|                | character in dest(ination).                        |
+'----------------'----------------------------------------------------'
+
+
+ ======================== Command Extensions =========================
+
+.----------------.----------------------------------------------------.
+|                |                                                    |
+| Command        | Description                                        |
+|                |                                                    |
+'----------------+----------------------------------------------------'
+| Q              | Immediately quit the sed script without processing |
+|                | any more input. (zero or one address command)      |
+'----------------+----------------------------------------------------'
+| R filename     | Append a line read from filename. (zero or one     |
+|                | address command).                                  |
+'----------------+----------------------------------------------------'
+| T label        | If no s/// has done a successful substitution      |
+|                | since the last input line was read and since the   |
+|                | last t or T command, then branch to label;         |
+|                | if label is omitted, branch to end of script.      |
+|                | (accepts address range).                           |
+'----------------+----------------------------------------------------'
+| W filename     | Write the first line of the current pattern space  |
+|                | to filename. (accepts address range).              |
+'----------------'----------------------------------------------------'
+
+
+ ======================= Address Range Summary =======================
+
+.----------------.----------------------------------------------------.
+|                |                                                    |
+| Format         | Description                                        |
+|                |                                                    |
+'----------------+----------------------------------------------------'
+| number         | Match only the specified line number.              |
+'----------------+----------------------------------------------------'
+| first~step     | Match every step'th line starting with line first. |
+'----------------+----------------------------------------------------'
+| $              | Match the last line.                               |
+'----------------+----------------------------------------------------'
+| 0, addr2       | Start out in "matched first address" state,        |
+|                | until addr2 is found.                              |
+'----------------+----------------------------------------------------'
+| /regex/        | Match lines matching the regular expression regex. |
+'----------------+----------------------------------------------------'
+| addr1,+N       | Will match addr1 and the N lines following addr1.  |
+'----------------+----------------------------------------------------'
+| \cregexc       | Match lines matching the regular expression regex. |
+|                | The c may be any character.                        |
+'----------------+----------------------------------------------------'
+| addr1,~N       | Will match addr1 and the lines following addr1     |
+|                | until the next line whose input line number        |
+|                | is a multiple of N.                                |
+'----------------'----------------------------------------------------'
+
+
+ ============== GNU Sed's Command Line Argument Summary ==============
+
+.---------------------.-----------------------------------------------.
+|                     |                                               |
+| Argument            | Description                                   |
+|                     |                                               |
+'---------------------+-----------------------------------------------'
+| -n                  |                                               |
+| --quiet             | Suppress automatic printing of pattern space. |
+| --silent            |                                               |
+'---------------------+-----------------------------------------------'
+| -e script           |                                               |  
+| --expression=script | Add the script to the commands to be executed.|
+|                     |                                               |
+'---------------------+-----------------------------------------------'
+| -f script-file      | Add the contents of script-file to the        |
+| --file=script-file  | commands to be executed.                      |
+'---------------------+-----------------------------------------------'
+| -i[suffix]          | Sdit files in place (makes backup if          |
+| --in-place[=suffix] | extension supplied).                          |
+'---------------------+-----------------------------------------------'
+| -l N                | Specify the desired line-wrap length for      |
+| --line-length=N     | the `l' command.                              |
+'---------------------+-----------------------------------------------'
+| -r                  | Use extended regular expressions in the       |
+| --regexp-extended   | script.                                       |
+'---------------------+-----------------------------------------------'
+| -s                  | Consider files as separate rather than as a   |
+| --separate          | single continuous long stream.                |
+'---------------------+-----------------------------------------------'
+| -u                  | Load minimal amounts of data from the input   |
+| --unbuffered        | files and flush the output buffers more often.|
+'---------------------+-----------------------------------------------'
+| --help              | Display this help and exit                    |
+'---------------------+-----------------------------------------------'
+| -V                  | Output version information and exit           |
+| --version           |                                               |
+'---------------------'-----------------------------------------------'
+
+ =====================================================================
+
+.---------------------------------------------------------------------.
+| Peteris Krumins (peter@catonmat.net), 2007.08.22                    |
+| http://www.catonmat.net  -  good coders code, great reuse           |
+'---------------------------------------------------------------------'
+
